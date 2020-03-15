@@ -1,0 +1,65 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+
+  <!-- Units Panel -->
+  
+  <Button name="DiceMasterUnitsPanel" frameStrata="LOW" parent="UIParent">
+    <Size x="153" y="256"/>
+    <Anchors>
+      <Anchor point="TOP" x="0" y="-200"/>
+    </Anchors>    
+	<Frames>
+		<Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true">
+			<!-- These unit frames are **special** so we have to disable their mouse input. -->
+			<Scripts>
+				<OnShow>
+					local frame = self:GetParent()
+					frame:SetClampedToScreen( true )
+					frame:SetMovable(true)
+					frame:EnableMouse(true)
+					frame:RegisterForDrag( "LeftButton" )
+					frame:SetScript( "OnDragStart", self.StartMoving )
+					frame:SetScript( "OnDragStop", self.StopMovingOrSizing )
+					frame:SetUserPlaced( true )
+					self.Title:SetText(self:GetParent().Title)
+					
+					for i = 1,8 do
+						frame.unitframes[i]:EnableMouse(false)
+					end
+				</OnShow>
+				<OnHide>
+					local frame = self:GetParent()
+					frame:EnableMouse(false)
+					frame:RegisterForDrag( false )
+					for i = 1,8 do
+						frame.unitframes[i]:EnableMouse(true)
+					end
+				</OnHide>
+			</Scripts>
+		</Frame>
+	</Frames>
+    <Scripts>
+      <OnLoad>
+		self.Title = "Unit Frames Panel"
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(false)
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		self:SetUserPlaced( true )
+		self:SetScale( 1.2 )
+        
+        -- create trait buttons
+        self.unitframes = {}
+        for i = 1,8 do
+          self.unitframes[i] = CreateFrame( "PlayerModel", nil, self, "DiceMasterUnitFrame" )
+		  self.unitframes[i]:SetFrameLevel(1)
+          self.unitframes[i]:SetSize( 153, 182 )
+          self.unitframes[i]:SetPoint( "CENTER", 280-180*(i-1), 0 )
+		  self.unitframes[i]:Hide()
+        end
+      </OnLoad>
+    </Scripts>
+     
+  </Button>
+</Ui>

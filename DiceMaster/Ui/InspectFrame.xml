@@ -1,0 +1,219 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+	
+  <!-- Inspect Panel / What shows when you target someone. -->
+  
+  <Button name="DiceMasterInspectFrame" frameStrata="MEDIUM" parent="UIParent">
+    <Size x="180" y="64"/>
+    <Anchors>
+      <Anchor point="CENTER" x="0" y="0"/>
+    </Anchors>
+    
+    <Scripts>
+      <OnLoad>
+		self.Title = "Inspect Frame"
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(false)
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		self:SetUserPlaced( true )
+        self:Hide()
+        
+        -- create trait buttons
+        self.traits = {}
+        for i = 1,5 do
+          self.traits[i] = CreateFrame( "DiceMasterTraitButton", nil, self )
+          self.traits[i]:SetSize( 24, 24 )
+          self.traits[i]:SetPoint( "CENTER", -56 + 28*(i-1), 0 )
+          self.traits[i].traitIndex = i
+		  self.traits[i]:SetScript( "OnMouseDown", function( self, button )
+			DiceMaster4.Inspect_OnTraitClicked( self, button )
+		end)
+        end
+      </OnLoad>
+    </Scripts>
+    
+    <Frames>
+		
+	  <Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
+      
+      <!-- Charges bar. -->
+      <DiceMasterStatusBar parentKey="charges">
+        
+        <Size x="32" y="32"/>
+        <Anchors>
+          <Anchor point="CENTER" x="0" y="22"/>
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+			self:SetScale( 0.5 )
+            self:SetTexture( "Interface/AddOns/DiceMaster/Texture/charge-orb"  ) 
+          </OnLoad>
+        </Scripts>
+      </DiceMasterStatusBar> 
+	  
+	  <Frame parentKey="charges2" inherits="DiceMasterUnitPowerBar">
+		<Size x="168" y="42"/>
+		<Anchors>
+		  <Anchor point="CENTER" x="0" y="20"/>
+		</Anchors>
+	  </Frame>
+      
+      <Frame parentKey="health">
+        <Size x="160" y="20"/>
+        <Anchors>
+          <Anchor point="CENTER" x="0" y="10"/> 
+        </Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="background" setAllPoints="true">
+				</Texture>
+		    </Layer>
+			<Layer level="BORDER" textureSubLevel="-1">
+				<Texture parentKey="armor" setAllPoints="true">
+				</Texture>
+			</Layer>
+			<Layer level="BORDER">
+				<Texture parentKey="fill" setAllPoints="true">
+				</Texture>
+		    </Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="frame" setAllPoints="true" >
+				</Texture>
+				<Texture parentKey="spark" alphaMode="ADD"/>
+				<Texture parentKey="barGlow" inherits="OverAbsorbGlowTemplate"/>
+		    </Layer>
+			<Layer level="HIGHLIGHT">
+				<FontString parentKey="text" inherits="TextStatusBarText" setallpoints="true">
+				</FontString>
+			</Layer>
+		</Layers>
+        <Scripts>
+          <OnLoad>
+			self.fill:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
+			self.fill:SetTexCoord( 0, 1, 0.5, 0.75 )
+			self.fill:ClearAllPoints();
+			self.fill:SetPoint("TOPLEFT");
+			self.fill:SetPoint("BOTTOMLEFT");
+			self.fill:SetWidth(self:GetWidth());
+			self.armor:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
+			self.armor:SetTexCoord( 0, 1, 0.75, 1 )
+			self.armor:ClearAllPoints();
+			self.armor:SetPoint("TOPLEFT");
+			self.armor:SetPoint("BOTTOMLEFT");
+			self.armor:SetWidth(self:GetWidth());
+			
+			self.barGlow:ClearAllPoints();
+			self.barGlow:SetHeight(self:GetHeight()/2);
+			self.barGlow:SetWidth(self:GetHeight()*0.8);
+			self.barGlow:SetPoint("LEFT", self.fill, "RIGHT", -6, 0);
+			self.spark:SetTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Spark")
+			self.spark:ClearAllPoints();
+			self.spark:SetHeight(self:GetHeight());
+			self.spark:SetWidth(self:GetHeight()/4);
+			self.spark:SetPoint("LEFT", self.fill, "RIGHT", -2, 0);
+			self.frame:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
+			self.frame:SetTexCoord( 0, 1, 0, 0.25 )
+			self.background:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
+			self.background:SetTexCoord( 0, 1, 0.25, 0.5 )
+			
+            --self:SetTexture( "Interface/AddOns/DiceMaster/Texture/health-heart" )
+            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, "Represents this character's health." )
+          </OnLoad>
+		  <OnMouseDown>
+            DiceMaster4.Inspect_OnHealthClicked( button )
+          </OnMouseDown>
+        </Scripts>
+      </Frame>
+    </Frames>     
+  </Button>
+  
+  <Frame name="DiceMasterInspectBuffFrame" parent="DiceMasterInspectFrame">
+	<Size x="180" y="32"/>
+	<Anchors>
+		<Anchor point="BOTTOM" relativeTo="DiceMasterInspectFrame" relativePoint="TOP" x="0" y="0">
+		</Anchor>
+	</Anchors>
+	<Frames>
+		<Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
+	</Frames>
+	<Scripts>
+		<OnLoad> 
+			self.Title = "Target Buffs Frame"
+			self:SetClampedToScreen( true )
+			self:SetMovable(true)
+			self:EnableMouse(false)
+			self:RegisterForDrag( "LeftButton" )
+			self:SetScript( "OnDragStart", self.StartMoving )
+			self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+			self:SetUserPlaced( true )
+		
+			-- create buff buttons
+			self.buffs = {}
+			for i = 1,5 do
+			  self.buffs[i] = CreateFrame( "Button", "DiceMasterInspectBuffButton"..i, self, "DiceMasterBuffButtonTemplate" )
+			  self.buffs[i]:SetSize( 24, 24 )
+			  self.buffs[i]:SetPoint( "CENTER", -56 + 28*(i-1), 0 )
+			  self.buffs[i]:SetScript("OnLoad", nil);
+			  self.buffs[i]:SetScript("OnClick", nil);
+			  self.buffs[i].buffIndex = i
+			end
+		</OnLoad>
+	</Scripts>
+  </Frame>
+  
+  <Button name="DiceMasterInspectPetFrame" frameStrata="MEDIUM" parent="DiceMasterInspectFrame">
+    
+    <Size x="48" y="48"/>
+    <Anchors>
+		<Anchor point="LEFT" relativeTo="DiceMasterInspectFrame" relativePoint="RIGHT" x="0" y="0">
+		</Anchor>
+	</Anchors>
+        
+    <Scripts>
+      <OnLoad>
+        self.Title = "Target Pet Frame"
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(false)
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		self:SetScale( 1.2 )
+		self:SetUserPlaced( true )
+      </OnLoad>
+	  <OnClick>
+		DiceMaster4.StatInspector_Open()
+		DiceMasterStatInspectorTab2:Click()
+	  </OnClick>
+    </Scripts>
+	
+	<Layers>
+		<Layer level="BACKGROUND">
+			<Texture parentKey="Texture" mask="Interface\CharacterFrame\TempPortraitAlphaMask">
+				<Size x="36" y="36" />
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="2" />
+				</Anchors>
+			</Texture>
+		</Layer>
+		<Layer level="BORDER">
+			<Texture parentKey="Ring" file="Interface/GUILDFRAME/GuildFrame">
+				<Size x="48" y="48" />
+				<TexCoords right="0.539" left="0.606" top="0.747" bottom="0.881"/>
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="0" />
+				</Anchors>
+			</Texture>
+		</Layer>
+	</Layers>
+    
+    <Frames>
+	
+	  <Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
+      
+    </Frames>
+  </Button>
+  
+</Ui>

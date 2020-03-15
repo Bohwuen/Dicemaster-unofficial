@@ -1,0 +1,189 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  
+     <!-- Template for the icon buttons in the trait icon selector. -->
+  <CinematicModel name="DiceMasterUnitPickerButton" virtual="true">
+    <Size width="32" height="32"/>
+	<Layers>
+		<Layer level="OVERLAY">
+			<Texture parentKey="check" file="Interface/Buttons/UI-CheckBox-Check" hidden="true">
+				<Size x="16" y="16"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+				</Anchors>
+			</Texture>
+		</Layer>
+	</Layers>
+    <Scripts>
+	  <OnShow>
+		self:SetPortraitZoom(0.7)
+		self:SetPortraitZoom(0)
+		self:SetSpellVisualKit(self.spellvisualkit or 0)
+	  </OnShow>
+      <OnMouseDown>
+        DiceMaster4.UnitPickerButton_OnClick( self, button )
+      </OnMouseDown>
+      <OnEnter>
+        DiceMaster4.UnitPickerButton_ShowTooltip( self )
+      </OnEnter>
+      <OnLeave>
+        GameTooltip:Hide()
+      </OnLeave>
+	  <OnAnimFinished>
+		self:SetSpellVisualKit(self.spellvisualkit or 0)
+	  </OnAnimFinished>
+    </Scripts>
+  </CinematicModel>
+  
+  <!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
+  <Frame name="DiceMasterUnitPicker" parent="UIParent" inherits="SimplePanelTemplate" hidden="true" framestrata="DIALOG" toplevel="true">
+    <Size x="256" y="256" />
+    <Anchors>
+      <Anchor point="LEFT" relativeTo="DiceMasterTraitEditor" relativePoint="RIGHT" x="0" y="0" />
+    </Anchors>
+    
+    <Layers>	  
+    </Layers>
+    
+    <Scripts>
+      <OnLoad>
+        -- create icon map
+        self.icons = {}
+        for y = 0,2 do
+          for x = 0,3 do
+            local btn = CreateFrame( "CinematicModel", nil, self.selectorFrame, "DiceMasterUnitPickerButton" )
+            btn.pickerIndex = index
+            btn:SetPoint( "TOPLEFT", self.selectorFrame, "TOPLEFT", 53*x, -65*y-2 )
+			btn:SetSize( 53, 65 )
+            
+            table.insert( self.icons, btn )
+            btn.pickerIndex = #self.icons
+          end
+        end
+      </OnLoad>
+    </Scripts>
+    <Frames>
+	
+		<!-- Favourites filter. -->
+      <Button name="$parentFilter" parentKey="filter" enableMouse="true" inherits="UIDropDownMenuTemplate">
+			<Size x="300" y="22"/>
+			<Anchors>
+			  <Anchor point="TOPLEFT" x="-16" y="-2"/> 
+			</Anchors>
+			<Scripts>
+			  <OnLoad>
+				UIDropDownMenu_Initialize( self, DiceMaster4.UnitPickerDropDown_OnLoad )
+				UIDropDownMenu_SetText(DiceMasterUnitPicker.filter, "Default") 
+				UIDropDownMenu_SetWidth(self, 110, 5)
+			  </OnLoad>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentRenameButton" inherits="UIPanelButtonTemplate" text="R">
+			<Size x="24" y="24"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeTo="$parentFilter" relativePoint="TOPRIGHT" x="32" y="-2"/> 
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					StaticPopup_Show("DICEMASTER4_RENAMECOLLECTIONEFFECTS", nil, nil, DiceMasterUnitPickerFilterText:GetText())
+				</OnClick>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to rename this collection.")
+					self:Disable()
+				</OnLoad>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentDeleteButton" inherits="UIPanelButtonTemplate" text="X">
+			<Size x="24" y="24"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeTo="$parentRenameButton" relativePoint="TOPRIGHT" x="2" y="0"/> 
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					StaticPopup_Show("DICEMASTER4_DELETECOLLECTIONEFFECTS", nil, nil, DiceMasterUnitPickerFilterText:GetText())
+				</OnClick>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to delete this collection.")
+					self:Disable()
+				</OnLoad>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentResetButton" inherits="UIPanelButtonTemplate" text="Clear">
+			<Size x="70" y="24"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeTo="$parentDeleteButton" relativePoint="TOPRIGHT" x="2" y="0"/> 
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					DiceMaster4.UnitPicker_ResetEffect()
+				</OnClick>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to remove the spell effect from this unit.")
+				</OnLoad>
+			</Scripts>
+		</Button>
+		
+		<Button inherits="MagicButtonTemplate" text="CLOSE">
+		<Size x="100" y="22"/>
+		<Anchors>
+			<Anchor point="BOTTOM"/>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				DiceMaster4.UnitPicker_Close()
+			</OnClick>
+		</Scripts>
+	  </Button>
+      
+      <!-- Area for icon selector. -->
+      <Frame parentKey="selectorFrame">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.Inset" x="5" y="-3"/>
+			<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Inset" x="-5" y="3"/>
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            self:EnableMouseWheel(true)
+          </OnLoad>
+          <OnMouseWheel>
+            DiceMaster4.UnitPicker_MouseScroll( delta )
+          </OnMouseWheel>
+        </Scripts>
+        
+        <Frames>
+        
+          <!-- Scroll bar -->
+          <Slider parentKey="scroller" inherits="UIPanelScrollBarTrimTemplate" minvalue="0" maxvalue="1" valuestep="3">
+            
+            <Anchors>
+              <Anchor point="TOPRIGHT" relativeKey="$parent.Inset" relativePoint="TOPRIGHT" x="2" y="-16" />
+              <Anchor point="BOTTOMRIGHT" relativeKey="$parent.Inset" relativePoint="BOTTOMRIGHT" x="2" y="14" />
+            </Anchors>
+            
+            <Layers>
+              <Layer level="BACKGROUND">
+                
+                <!-- scroller background -->
+                <Texture setAllPoints="true">
+                  <Color r="0" g="0" b="0" a="0.25"/>
+                </Texture>
+                
+              </Layer>
+            </Layers>
+            <Scripts>
+              <OnLoad>
+                self:SetValueStep(1)
+                self.scrollStep = 4
+              </OnLoad>
+              <OnValueChanged>
+                DiceMaster4.UnitPicker_ScrollChanged( value )
+              </OnValueChanged>
+            </Scripts>
+          </Slider>
+        </Frames>
+      </Frame>
+    </Frames>
+  </Frame>
+</Ui>

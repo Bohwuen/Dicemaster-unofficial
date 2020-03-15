@@ -1,0 +1,438 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+
+  <!-- The Dice Master panel for rolling and opening the trait editor. -->
+  
+  <Frame name="DiceMasterPanel" movable="true" enableMouse="true" frameStrata="MEDIUM" parent="UIParent">
+    
+    <Size x="200" y="90"/>
+    <Anchors>
+      <Anchor point="TOP" x="0" y="-64"/>
+    </Anchors>	
+    <Layers>
+      <Layer level="BACKGROUND">
+      
+        <!-- Panel texture -->
+        <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
+          <Size x="192" y="48" />
+          <Anchors>
+            <Anchor point="CENTER" x="0" y="-17"/>
+          </Anchors>
+          <TexCoords left="0" right="1" top="0" bottom="0.5" />
+        </Texture>
+        
+      </Layer>
+      
+      <Layer level="OVERLAY">
+        
+        <!-- Roll button -->
+        <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
+          <Size x="48" y="48" />
+          <Anchors>
+            <Anchor point="CENTER" x="80" y="-17"/>
+          </Anchors>
+          <TexCoords left="0" right="0.25" top="0.5" bottom="1" />
+        </Texture>
+      </Layer>
+	  
+    </Layers>
+    
+    <Scripts>
+      <OnLoad>		
+		self.Title = "Dice Panel"
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(false)
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		self:SetUserPlaced( true )
+		
+		-- create trait buttons
+        self.traits = {}
+        for i = 1,5 do
+          self.traits[i] = CreateFrame( "DiceMasterTraitButton", nil, self )
+          self.traits[i]:SetSize( 24, 24 )
+          self.traits[i]:SetPoint( "CENTER", -56 + 28*(i-1), 15 )
+          self.traits[i].traitIndex = i
+		  self.traits[i].editable_trait = true;
+		  self.traits[i]:SetScript( "OnMouseDown", function( self, button )
+			if IsShiftKeyDown() then DiceMaster4.TraitEditor_OnTraitClicked( self, button ) elseif button == "LeftButton" then DiceMaster4.TraitButtonClicked() DiceMaster4.TraitEditor_StartEditing( self.traitIndex ) elseif button == "RightButton" then DiceMaster4.BuffFrame_RemoveBuff( self.traitIndex ) DiceMaster4.BuffFrame_CastBuff( self.traitIndex ) DiceMaster4.BuffFrame_RollDice( self.traitIndex ) end
+		end)
+        end
+      </OnLoad>
+    </Scripts>
+    
+    <Frames>
+	  <Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
+    
+      <!-- Dice format editbox. -->
+      <EditBox name="$parentDice" parentKey="dice" font="DiceMasterFontExtraThicc">
+      
+        <Size x="80" y="14" />
+        <Anchors>
+          <Anchor point="CENTER" x="0" y="-17" />
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            self:SetMaxLetters( 8 )
+            self:SetJustifyH( "CENTER" )
+            self:SetTextColor( 1, 0.82, 0 );
+            self:SetText( "1D20+0" )
+            self:SetAutoFocus(false);
+          </OnLoad>
+          
+          <OnEscapePressed function="EditBox_ClearFocus"/>
+		  <OnEditFocusLost>
+			DiceMaster4.Profile.dice = self:GetText()
+		  </OnEditFocusLost>
+        </Scripts>
+      </EditBox>
+      
+      <!-- Dice button. -->
+      <Button parentKey="roll">
+        <Size x="28" y="29"/>
+        <Anchors>
+          <Anchor point="CENTER" x="79" y="-17"/>
+        </Anchors>
+        
+        <HighlightTexture file="Interface/MINIMAP/UI-Minimap-ZoomButton-Highlight" alphaMode="ADD">
+			<Size x="28" y="28"/>
+			<Anchors>
+				<Anchor point="CENTER" x="0" y="0" />
+			</Anchors>
+		</HighlightTexture>
+        
+        <Scripts>
+		  <OnShow>
+			UIDropDownMenu_Initialize( self, DiceMaster4.RollWheelDropDown_OnLoad )
+		  </OnShow>
+          <OnEnter>
+            
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:AddLine( "|cFFFFD100Click para lanzar dados " .. DiceMasterPanelDice:GetText() .. ".|r" )
+			GameTooltip:AddLine( "|cFF707070&lt;Mantener click izquierdo para opciones>|n&lt;Click derecho para fijar opciones>" )
+            GameTooltip:Show()
+            
+          </OnEnter>
+          <OnLeave>
+            GameTooltip:Hide()
+          </OnLeave>
+          <OnMouseUp>
+			if button == "LeftButton" then
+				local selected = DiceMasterPanel.rollWheel.selected
+				if MouseIsOver(self) and not selected then
+					DiceMaster4.RollButtonClicked()
+				elseif selected and selected ~= 0 then
+					DiceMaster4.RollWheel_OnClick( selected )				
+				end
+				DiceMasterPanel.rollWheel.selected = nil
+				DiceMasterPanel.rollWheel:Hide()
+				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+			end
+          </OnMouseUp>
+		  <OnMouseDown>
+			if button == "LeftButton" then
+				DiceMasterPanel.rollWheel.selected = nil
+				C_Timer.After(0.5, function()
+					if IsMouseButtonDown("LeftButton") and MouseIsOver(self) then
+						DiceMaster4.RollWheel_Update()
+						DiceMasterPanel.rollWheel:Show()
+					end
+				end)
+			elseif button == "RightButton" then
+				ToggleDropDownMenu(1, nil, self, self, 0, 0)
+				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+			end
+		  </OnMouseDown>
+        </Scripts>
+      </Button>
+	  
+	  <Frame name="$parentRollWheel" parentKey="rollWheel" hidden="true" toplevel="true">
+		<Size x="256" y="256"/>
+		<Anchors>
+			<Anchor point="CENTER" relativeKey="$parent.roll" relativePoint="CENTER" x="0" y="0"/>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture file="Interface/AddOns/DiceMaster/Texture/roll-wheel" setAllPoints="true">
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Highlight" file="Interface/AddOns/DiceMaster/Texture/roll-wheel-highlight" setAllPoints="true" alphaMode="ADD" hidden="true" alpha="0.5">
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+		
+			<Button name="$parentQ1" parentKey="1">
+				<Size x="48" y="48"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="23" y="55.4"/>
+				</Anchors>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontHighlightSmall">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMaster4.RollWheel_OnEnter( self, 0 )
+				  </OnEnter>
+				  <OnLeave>
+					DiceMasterPanel.rollWheel.selected = 0
+					self.Text:SetTextColor( 1, 1, 1 )
+					self:GetParent().Highlight:Hide()
+					GameTooltip:Hide()
+				  </OnLeave>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentQ2" parentKey="2">
+				<Size x="48" y="48"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="55.4" y="23"/>
+				</Anchors>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontHighlightSmall">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMaster4.RollWheel_OnEnter( self, -0.785398 )
+				  </OnEnter>
+				  <OnLeave>
+					DiceMasterPanel.rollWheel.selected = 0
+					self.Text:SetTextColor( 1, 1, 1 )
+					self:GetParent().Highlight:Hide()
+					GameTooltip:Hide()
+				  </OnLeave>
+				  <OnClick>
+				  </OnClick>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentQ3" parentKey="3">
+				<Size x="48" y="48"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="55.4" y="-23"/>
+				</Anchors>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontHighlightSmall" text="Coerce">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMaster4.RollWheel_OnEnter( self, -1.5708 )
+				  </OnEnter>
+				  <OnLeave>
+					DiceMasterPanel.rollWheel.selected = 0
+					self.Text:SetTextColor( 1, 1, 1 )
+					self:GetParent().Highlight:Hide()
+					GameTooltip:Hide()
+				  </OnLeave>
+				  <OnClick>
+				  </OnClick>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentQ4" parentKey="4">
+				<Size x="48" y="48"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="23" y="-55.4"/>
+				</Anchors>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontHighlightSmall" text="Percep.">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMaster4.RollWheel_OnEnter( self, -2.35619 )
+				  </OnEnter>
+				  <OnLeave>
+					DiceMasterPanel.rollWheel.selected = 0
+					self.Text:SetTextColor( 1, 1, 1 )
+					self:GetParent().Highlight:Hide()
+					GameTooltip:Hide()
+				  </OnLeave>
+				  <OnClick>
+				  </OnClick>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentQ5" parentKey="5">
+				<Size x="48" y="48"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="-23" y="-55.4"/>
+				</Anchors>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontHighlightSmall" text="Sneak">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMaster4.RollWheel_OnEnter( self, -3.14159 )
+				  </OnEnter>
+				  <OnLeave>
+					DiceMasterPanel.rollWheel.selected = 0
+					self.Text:SetTextColor( 1, 1, 1 )
+					self:GetParent().Highlight:Hide()
+					GameTooltip:Hide()
+				  </OnLeave>
+				  <OnClick>
+				  </OnClick>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentQ6" parentKey="6">
+				<Size x="48" y="48"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="-55.4" y="-23"/>
+				</Anchors>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontHighlightSmall" text="Bluff">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMaster4.RollWheel_OnEnter( self, -3.92699 )
+				  </OnEnter>
+				  <OnLeave>
+					DiceMasterPanel.rollWheel.selected = 0
+					self.Text:SetTextColor( 1, 1, 1 )
+					self:GetParent().Highlight:Hide()
+					GameTooltip:Hide()
+				  </OnLeave>
+				  <OnClick>
+				  </OnClick>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentQ7" parentKey="7">
+				<Size x="48" y="48"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="-55.4" y="23"/>
+				</Anchors>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontHighlightSmall" text="Insight">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMaster4.RollWheel_OnEnter( self, -4.71239 )
+				  </OnEnter>
+				  <OnLeave>
+					DiceMasterPanel.rollWheel.selected = 0
+					self.Text:SetTextColor( 1, 1, 1 )
+					self:GetParent().Highlight:Hide()
+					GameTooltip:Hide()
+				  </OnLeave>
+				  <OnClick>
+				  </OnClick>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentQ8" parentKey="8">
+				<Size x="48" y="48"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="-23" y="55.4"/>
+				</Anchors>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontHighlightSmall" text="Attack">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMaster4.RollWheel_OnEnter( self, -5.49779 )
+				  </OnEnter>
+				  <OnLeave>
+					DiceMasterPanel.rollWheel.selected = 0
+					self.Text:SetTextColor( 1, 1, 1 )
+					self:GetParent().Highlight:Hide()
+					GameTooltip:Hide()
+				  </OnLeave>
+				  <OnClick>
+				  </OnClick>
+				</Scripts>
+			</Button>
+		
+			<Button parentKey="cancel">
+				<Size x="64" y="64"/>
+				<Anchors>
+				  <Anchor point="CENTER" x="0" y="0"/>
+				</Anchors>
+				
+				<NormalTexture file="Interface/AddOns/DiceMaster/Texture/roll-wheel-cancel" />
+				<HighlightTexture file="Interface/Buttons/IconBorder-GlowRing" alphaMode="ADD" parentKey="highlight" /> 
+				
+				<Scripts>
+				  <OnEnter>
+					DiceMasterPanel.rollWheel.selected = 0
+					PlaySound(823)
+				  </OnEnter>
+				  <OnLoad>
+					self.highlight:SetVertexColor(1, 0.81, 0);
+				  </OnLoad>
+				</Scripts>
+			</Button>
+			  
+		</Frames>
+		
+	  </Frame>
+    </Frames>
+  </Frame>
+</Ui>

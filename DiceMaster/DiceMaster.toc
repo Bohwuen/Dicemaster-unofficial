@@ -1,0 +1,35 @@
+## Interface: 80300
+## Title: DiceMaster
+## Author: Skylar, Rennae
+## Notes: An intuitive custom dice addon for roleplay.
+## Version: 5.1.2
+## SavedVariables: DiceMaster4_Saved
+## SavedVariablesPerCharacter: DiceMaster_TraitOne, DiceMaster_TraitTwo, DiceMaster_TraitThree, DiceMaster_TraitFour, DiceMaster_TraitFive, DiceMaster_Charges, DiceMaster_ChargesName, DiceMaster_ChargesColor, DiceMaster_ChargesMax
+
+embeds.xml
+DiceMaster.lua
+Config.lua
+Comm.lua
+Dice.lua
+Console.lua
+Events.lua
+TraitEditor.lua
+StatInspector.lua
+Inspect.lua
+DM3Import.lua
+IconList.lua
+ModelList.lua
+RollList.lua
+IconPicker.lua
+ColourPicker.lua
+ModelPicker.lua
+ChatLinks.lua
+Names.lua
+MinimapButton.lua
+RollTracker.lua
+RollBanner.lua
+PostTracker.lua
+MoraleBar.lua
+Buffs.lua
+
+Ui/Ui.xml

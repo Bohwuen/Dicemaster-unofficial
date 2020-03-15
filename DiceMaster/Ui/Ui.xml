@@ -1,0 +1,157 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  
+  <!-- Template for drag frames. -->
+  <Frame name="DiceMasterDragFrameTemplate" toplevel="true" hidden="true" virtual="true">
+	<Layers>
+		<Layer level="OVERLAY">
+			<Texture parentKey="Overlay" file=" " alpha="0.25" setAllPoints="true">
+			</Texture>
+			<FontString parentKey="Title" inherits="GameFontNormalSmall" setAllPoints="true" text="">
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="0"/>
+				</Anchors>
+			</FontString>
+		</Layer>
+	</Layers>
+	<Scripts>
+		<OnLoad>
+			tinsert(DiceMaster4.snapBars, self:GetParent())
+		</OnLoad>
+		<OnShow>
+			local StickyFrames = LibStub("LibSimpleSticky-1.0")
+			local frame = self:GetParent()
+			frame:SetClampedToScreen( true )
+			frame:SetMovable(true)
+			frame:EnableMouse(true)
+			frame:RegisterForDrag( "LeftButton" )
+			frame:SetUserPlaced( true )
+			frame:SetScript( "OnDragStart", DiceMaster4.BarOnDragStart)
+			frame:SetScript( "OnDragStop", DiceMaster4.BarOnDragStop)
+			self.Title:SetText(self:GetParent().Title)
+			
+			local kids = { frame:GetChildren() }
+			for _, child in pairs(kids) do
+				if child:IsMouseEnabled() then
+					child:EnableMouse(false)
+				end
+			end
+		</OnShow>
+		<OnHide>
+			local frame = self:GetParent()
+			frame:RegisterForDrag( false )
+			local kids = { frame:GetChildren() }
+			for _, child in pairs(kids) do
+				if not child:IsMouseEnabled() then
+					child:EnableMouse(true)
+				end
+			end
+		</OnHide>
+	</Scripts>
+  </Frame>
+  
+  <Frame name="DiceMasterUnlockDialog" parent="UIParent" hidden="true" framestrata="DIALOG">
+	<Size x="360" y="110"/>
+	<Anchors>
+		<Anchor point="TOP" x="0" y="-50"/>
+	</Anchors>
+	<Backdrop bgFile="Interface/DialogFrame/UI-DialogBox-Background"
+       edgeFile="Interface/DialogFrame/UI-DialogBox-Border" tile="true">
+		<EdgeSize val="32"/>
+		<TileSize val="32"/>
+ 	<BackgroundInsets left="11" right="12" top="12" bottom="11"/>
+    </Backdrop>
+	<Layers>
+		<Layer level="ARTWORK">
+			<Texture parentKey="Header" file="Interface/DialogFrame/UI-DialogBox-Header">
+				<Size x="256" y="64"/>
+				<Anchors>
+					<Anchor point="TOP" x="0" y="12"/>
+				</Anchors>
+			</Texture>
+			<FontString parentKey="Title" inherits="GameFontNormal" text="DiceMaster">
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.Header" relativePoint="TOP" x="0" y="-14"/>
+				</Anchors>
+			</FontString>
+			<FontString parentKey="Desc" inherits="GameFontHighlight" justifyV="TOP" justifyH="LEFT" text="Marcos desbloqueados. Muévelos ahora y haz clic en Bloquear cuando hayas terminado.">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="18" y="-32"/>
+					<Anchor point="BOTTOMRIGHT" x="-18" y="48"/>
+				</Anchors>
+			</FontString>
+		</Layer>
+	</Layers>
+	<Frames>
+		<CheckButton parentKey="LockBars" inherits="OptionsButtonTemplate" text="Bloquear">
+			<Anchors>
+				<Anchor point="BOTTOMRIGHT" x="-14" y="14"/>
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					DiceMaster4.LockFrames()
+				</OnClick>
+			</Scripts>
+		</CheckButton>
+		<CheckButton name="$parent.Snapping" parentKey="Snapping" inherits="OptionsCheckButtonTemplate">
+			<Anchors>
+				<Anchor point="BOTTOMLEFT" x="14" y="10"/>
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					DiceMaster4.db.global.snapping = self:GetChecked()
+				</OnClick>
+				<OnLoad>
+					_G[self:GetName().."Text"]:SetText("unión de barras")
+				</OnLoad>
+				<OnShow>
+					self:SetChecked(DiceMaster4.db.global.snapping )
+				</OnShow>
+			</Scripts>
+		</CheckButton>
+	</Frames>
+	<Scripts>
+		<OnLoad>
+			self:SetClampedToScreen( true )
+			self:SetMovable(true)
+			self:EnableMouse(true)
+			self:RegisterForDrag( "LeftButton" )
+			self:SetScript( "OnDragStart", self.StartMoving )
+			self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+			self:SetUserPlaced( true )
+			
+			DiceMaster4.snapBars = { WorldFrame, UIParent }
+		</OnLoad>
+		<OnShow>
+			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
+			DiceMaster4.FramesUnlocked = true
+		</OnShow>
+		<OnHide>
+			PlaySound(SOUNDKIT.GS_TITLE_OPTION_EXIT) 
+			DiceMaster4.FramesUnlocked = false
+		</OnHide>
+	</Scripts>
+  </Frame>
+  
+  <Include file="Ui\Fonts.xml"/>
+  
+  <!-- Intrinsics/Widgets -->
+  <Include file="Ui\Widgets\StatusBar.xml"/>
+  <Include file="Ui\Widgets\TraitButton.xml"/>
+  <Include file="Ui\Widgets\UnitPowerBar.xml"/>
+  
+  <!-- Frames -->
+  <Include file="Ui\Panel.xml"/>
+  <Include file="Ui\TraitEditor.xml"/>
+  <Include file="Ui\StatInspector.xml"/>
+  <Include file="Ui\Charges.xml"/>
+  <Include file="Ui\IconPicker.xml"/>
+  <Include file="Ui\ColourPicker.xml"/>
+  <Include file="Ui\ModelPicker.xml"/>
+  <Include file="Ui\Buffs.xml"/>
+  <Include file="Ui\InspectFrame.xml"/>
+  <Include file="Ui\RollTracker.xml"/>
+  <Include file="Ui\RollBanner.xml"/>
+  <Include file="Ui\PostTracker.xml"/>
+  <Include file="Ui\MoraleBar.xml"/>
+</Ui>
+ 
