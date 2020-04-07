@@ -22,6 +22,7 @@ local DB_DEFAULTS = {
 		hideTracker = false; -- hide the roll tracker.
 		trackerAnchor = "RIGHT";
 		hideTypeTracker = false;
+		enableD10 = false;
 		enableRoundBanners = true;
 		talkingHeads = true;
 		soundEffects = true;
@@ -238,7 +239,7 @@ Me.configOptions = {
 			end;
 			get = function( info ) return Me.db.global.enableRoundBanners end;
 		};
-				enableD10 = {
+		enableD10 = {
 			order = 14;
 			name  = "Habilitar modo D10";
 			desc  = "Habilitar modo Dados 10.";
