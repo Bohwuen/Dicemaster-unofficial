@@ -39,6 +39,7 @@ local Sticky = LibStub("LibSimpleSticky-1.0")
 local GUILDS_ALLOWED = {
 	["Lexicón Arcano"] = true;
 	["Cruz de hierro"] = true;
+	["Los Protectores"] = true;
 	["Orden de las Dos Lunas"] = true;
 }
 
