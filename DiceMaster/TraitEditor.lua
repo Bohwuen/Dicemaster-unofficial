@@ -428,9 +428,9 @@ function Me.TraitEditor_StatsList_SaveStat( self )
 	end
 	
 	if Me.PermittedUse() then
-		if tonumber( self:GetText() ) > 7 then
+		if tonumber( self:GetText() ) > 10 then
 			self:SetText( self.lastValue )
-			UIErrorsFrame:AddMessage( "No puedes poner mas de 7 puntos en esta estadística!", 1.0, 0.0, 0.0, 53, 5 ); 
+			UIErrorsFrame:AddMessage( "No puedes poner mas de 10 puntos en esta estadística!", 1.0, 0.0, 0.0, 53, 5 ); 
 		end		
 	end
 	
