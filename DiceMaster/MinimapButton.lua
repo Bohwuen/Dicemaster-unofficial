@@ -41,10 +41,14 @@ end
 
 -------------------------------------------------------------------------------
 function Me.MinimapButton:OnClick( frame, button )
-	if button == "LeftButton" then
+	if not IsShiftKeyDown() and button == "LeftButton" then
 		Me.ShowPanel( Me.db.char.hidepanel )
-	elseif button == "RightButton" then
+	elseif not IsShiftKeyDown() and button == "RightButton" then
 		Me.OpenConfig()
+	elseif IsShiftKeyDown() and button == "LeftButton" then
+		Me.UnlockFrames()
+	--elseif IsShiftKeyDown() and button == "RigthButton" then
+		--Me.db.char.unitframes.enable = not Me.db.char.unitframes.enable
 	end
 end
    
@@ -68,7 +72,9 @@ function Me.MinimapButton:OnEnter( frame )
 	GameTooltip:AddDoubleLine( "DiceMaster", Me.version, 1, 1, 1, 1, 1, 1 )
 	GameTooltip:AddLine( " " )
 	GameTooltip:AddLine( "|cff00ff00Click izquierdo|r para esconder/mostrar panel.", 1, 1, 1 )
+	GameTooltip:AddLine( "|cff00ff00shift-Click izquierdo|r para desbloquear marcos.", 1, 1, 1 )
 	GameTooltip:AddLine( "|cff00ff00Click derecho|r para configuración.", 1, 1, 1 )
+	--GameTooltip:AddLine( "|cff00ff00shift-Click derecho|r para activar marcos de unidad.", 1, 1, 1 )
 	GameTooltip:Show()
 end
 
