@@ -41,6 +41,7 @@ local GUILDS_ALLOWED = {
 	["Cruz de hierro"] = true;
 	["Los Protectores"] = true;
 	["Orden de las Dos Lunas"] = true;
+	["Aventurero"] = true;
 }
 
 -------------------------------------------------------------------------------
