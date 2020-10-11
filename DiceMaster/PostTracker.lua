@@ -13,6 +13,9 @@ local trackTypes = {
 	["Say: "] = true,
 	["Party: "] = true,
 	["Raid: "] = true,
+	["Decir: "] = true,
+	["Grupo: "] = true,
+	["Banda: "] = true,
 	[UnitName("player").." "] = true,
 }
 
