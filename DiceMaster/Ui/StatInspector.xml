@@ -65,7 +65,7 @@
 	</Frames>
 	<Scripts>
 		<OnLoad>
-			self.Title = "Boton de inspacción"
+			self.Title = "Boton de inspección"
 			self:SetClampedToScreen( true )
 			self:SetMovable(true)
 			self:EnableMouse(false)
