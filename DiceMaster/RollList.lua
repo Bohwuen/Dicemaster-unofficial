@@ -180,7 +180,7 @@ DiceMaster4.RollList = {
 		{
 			name = "Escudo",
 			subName = "Escudo",
-			wheelName = "",
+			wheelName = "Escudo",
 			   
 			desc = "", 
 			stat = "Vigor",
